@@ -6,6 +6,14 @@ class BaseExceptionWithPayload(Exception):
         super().__init__(message or self.default_message, args)
 
 
+class QueueClientError(BaseExceptionWithPayload):
+    default_message = 'Error in queue client.'
+
+
+class PubSubError(QueueClientError):
+    default_message = 'Error in pubsub service.'
+
+
 class EncodingError(BaseExceptionWithPayload):
     default_message = 'Error while encoding data.'
 
