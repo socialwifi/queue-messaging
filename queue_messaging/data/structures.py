@@ -1,7 +1,7 @@
 import collections
 
 
-Header = collections.namedtuple('Header', ['type', 'datetime'])
+Header = collections.namedtuple('Header', ['type', 'timestamp'])
 
 
 class Model:

@@ -14,9 +14,17 @@ class PubSubError(QueueClientError):
     default_message = 'Error in pubsub service.'
 
 
+class QueueMessagingError(BaseExceptionWithPayload):
+    default_message = 'Error in queue messaging.'
+
+
 class EncodingError(BaseExceptionWithPayload):
     default_message = 'Error while encoding data.'
 
 
 class DecodingError(BaseExceptionWithPayload):
     default_message = 'Error while decoding data.'
+
+
+class ConfigurationError(Exception):
+    pass
