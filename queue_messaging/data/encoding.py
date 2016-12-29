@@ -1,7 +1,7 @@
 import json
 
-from messaging import exceptions
-from messaging.data import structures
+from queue_messaging import exceptions
+from queue_messaging.data import structures
 
 
 def encode(data: structures.Model):

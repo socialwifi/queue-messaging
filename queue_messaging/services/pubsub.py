@@ -4,8 +4,8 @@ from google.cloud import pubsub
 from google.gax import errors
 from google.cloud import exceptions as google_cloud_exceptions
 
-from messaging import exceptions
-from messaging import utils
+from queue_messaging import exceptions
+from queue_messaging import utils
 
 
 def get_pubsub_client(queue_config):

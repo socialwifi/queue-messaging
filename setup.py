@@ -9,7 +9,7 @@ setup(
     author='Jakub Trochim',
     author_email='it@socialwifi.com',
     url='https://github.com/socialwifi/queue-messaging',
-    packages=['messaging'],
+    packages=['queue_messaging'],
     install_requires=[str(ir.req) for ir in parse_requirements('base_requirements.txt', session=False)],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],

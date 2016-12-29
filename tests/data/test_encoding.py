@@ -5,9 +5,9 @@ import pytest
 from marshmallow import fields
 from unittest import mock
 
-from messaging import exceptions
-from messaging.data import structures
-from messaging.data import encoding
+from queue_messaging import exceptions
+from queue_messaging.data import structures
+from queue_messaging.data import encoding
 
 
 class FancyEventSchema(marshmallow.Schema):
