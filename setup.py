@@ -1,5 +1,6 @@
 from pip.req import parse_requirements
 from setuptools import setup
+from setuptools import find_packages
 
 
 setup(
@@ -9,7 +10,7 @@ setup(
     author='Jakub Trochim',
     author_email='it@socialwifi.com',
     url='https://github.com/socialwifi/queue-messaging',
-    packages=['queue_messaging'],
+    packages=find_packages(exclude=['tests']),
     install_requires=[str(ir.req) for ir in parse_requirements('base_requirements.txt', session=False)],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
