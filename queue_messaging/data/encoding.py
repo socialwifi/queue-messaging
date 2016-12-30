@@ -37,7 +37,7 @@ def decode(type, encoded_data: str):
 
 def create_attributes(model: structures.Model, mapping, now=None) -> dict:
     if now is None:
-        now = datetime.datetime.now(datetime.timezone.utc)
+        now = get_now_with_utc_timezone()
     try:
         type_name = mapping[model.__class__]
     except KeyError:
@@ -48,6 +48,10 @@ def create_attributes(model: structures.Model, mapping, now=None) -> dict:
             'type': type_name,
             'timestamp': datetime_to_rfc3339_string(now),
         }
+
+
+def get_now_with_utc_timezone() -> datetime.datetime:
+    return datetime.datetime.now(datetime.timezone.utc)
 
 
 def create_header(attributes):

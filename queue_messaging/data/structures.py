@@ -20,6 +20,9 @@ class Model:
             (', '.join(['='.join((key, repr(value))) for key, value in self.__dict__.items()])),
         )
 
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
     @staticmethod
     def _validate_with_schema_fields(model_fields, schema):
         model_fields_names = set(model_fields.keys())
