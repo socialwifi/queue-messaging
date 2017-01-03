@@ -12,7 +12,7 @@ def encode(model: structures.Model):
         raise exceptions.EncodingError(e)
 
 
-def decode_payload(header: structures.Header, encoded_data: bytes, message_config: dict):
+def decode_payload(header: structures.Header, encoded_data: str, message_config: dict):
     try:
         type = message_config[header.type]
     except AttributeError:
@@ -20,7 +20,7 @@ def decode_payload(header: structures.Header, encoded_data: bytes, message_confi
     except KeyError:
         raise exceptions.DecodingError('Unknown type.', header_type=header.type)
     else:
-        return decode(type, encoded_data.decode('utf-8'))
+        return decode(type, encoded_data)
 
 
 def decode(type, encoded_data: str):

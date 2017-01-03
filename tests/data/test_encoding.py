@@ -44,7 +44,7 @@ def test_payload_decoder_valid():
     header = mock.Mock(
         type='FancyEvent',
     )
-    encoded_payload = b'{"uuid_field": "72d9a041-f401-42b6-8556-72b3c00e43d8", "string_field": "123456789"}'
+    encoded_payload = '{"uuid_field": "72d9a041-f401-42b6-8556-72b3c00e43d8", "string_field": "123456789"}'
     message_config = {
         'FancyEvent': FancyEvent,
     }
@@ -59,7 +59,7 @@ def test_payload_decoder_invalid_header():
     header = mock.Mock(
         type='NonExistingEvent'
     )
-    encoded_payload = b'{"uuid_field": "72d9a041-f401-42b6-8556-72b3c00e43d8", "string_field": "123456789"}'
+    encoded_payload = '{"uuid_field": "72d9a041-f401-42b6-8556-72b3c00e43d8", "string_field": "123456789"}'
     message_config = {
         'FancyEvent': FancyEvent,
     }
@@ -75,7 +75,7 @@ def test_payload_decoder_invalid_data():
     header = mock.Mock(
         type='FancyEvent',
     )
-    encoded_payload = b'invalid data'
+    encoded_payload = 'invalid data'
     message_config = {
         'FancyEvent': FancyEvent,
     }
@@ -91,7 +91,7 @@ def test_payload_decoder_empty_data():
     header = mock.Mock(
         type='FancyEvent',
     )
-    encoded_payload = b'{}'
+    encoded_payload = '{}'
     message_config = {
         'FancyEvent': FancyEvent,
     }

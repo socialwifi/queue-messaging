@@ -55,7 +55,7 @@ class PubSub:
         else:
             return pubsub.Client()
 
-    def send(self, message, **attributes):
+    def send(self, message: str, **attributes):
         bytes_payload = message.encode('utf-8')
         try:
             return self.topic.publish(bytes_payload, **attributes)
@@ -68,7 +68,7 @@ class PubSub:
             if result:
                 ack_id, message = result.pop()
                 return PulledMessage(
-                    ack_id=ack_id, data=message.data,
+                    ack_id=ack_id, data=message.data.decode('utf-8'),
                     message_id=message.message_id, attributes=message.attributes)
         except (errors.GaxError, google_cloud_exceptions.NotFound) as e:
             raise exceptions.PubSubError('Error while pulling a message.', errors=e)

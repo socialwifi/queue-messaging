@@ -11,18 +11,46 @@ logger = logging.getLogger(__name__)
 
 
 class Envelope:
-    def __init__(self, model, acknowledge_id, client):
-        self.model = model
-        self._acknowledge_id = acknowledge_id
+    def __init__(self, pulled_message, client, dead_letter_client,
+                 types_to_model):
+        self._pulled_message = pulled_message
         self._client = client
+        self._dead_letter_client = dead_letter_client
+        self._types_to_model = types_to_model
 
     def acknowledge(self):
-        self._client.acknowledge(self._acknowledge_id)
+        acknowledge_id = self._pulled_message.ack_id
+        self._client.acknowledge(acknowledge_id)
+
+    @property
+    def model(self):
+        return encoding.decode_payload(
+            header=encoding.create_header(self._pulled_message.attributes),
+            encoded_data=self._pulled_message.data,
+            message_config=self._types_to_model)
+
+    def mark_as_dead_letter(self):
+        self._send_to_dead_letter_queue()
+        self.acknowledge()
+
+    def _send_to_dead_letter_queue(self):
+        message = self._pulled_message.data
+        attributes = self._pulled_message.attributes
+        try:
+            self._dead_letter_client.send(message=message, **attributes)
+        except exceptions.QueueClientError as e:
+            raise exceptions.QueueMessagingError(
+                'Error while sending a message to the dead letter queue',
+                data=message,
+                attributes=attributes,
+                error=e,
+            )
 
 
 class Messaging:
     def __init__(self, config: configuration.Configuration):
         self._client = pubsub.get_pubsub_client(config)
+        self._dead_letter_client = pubsub.get_fallback_pubsub_client(config)
         self._types_to_model, self._models_to_type = (
             self._create_types_mappings(config.MESSAGE_TYPES))
 
@@ -62,10 +90,12 @@ class Messaging:
         pulled_message = self._pull_message()
         if pulled_message is None:
             return
-        model = self._get_model(pulled_message)
         return Envelope(
-            model=model, acknowledge_id=pulled_message.ack_id,
-            client=self._client)
+            pulled_message=pulled_message,
+            client=self._client,
+            dead_letter_client=self._dead_letter_client,
+            types_to_model=self._types_to_model
+        )
 
     def _get_attributes(self, model: structures.Model):
         return encoding.create_attributes(model, self._models_to_type)
@@ -92,9 +122,3 @@ class Messaging:
                 'Error while receiving a message',
                 error=e,
             )
-
-    def _get_model(self, pulled_message: pubsub.PulledMessage):
-        return encoding.decode_payload(
-            header=encoding.create_header(pulled_message.attributes),
-            encoded_data=pulled_message.data,
-            message_config=self._types_to_model)
