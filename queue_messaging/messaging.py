@@ -27,9 +27,13 @@ class Envelope:
         if self._pulled_message is None:
             raise exceptions.NoMessagesReceivedError
         return encoding.decode_payload(
-            header=encoding.create_header(self._pulled_message.attributes),
+            header=self.header,
             encoded_data=self._pulled_message.data,
             message_config=self._types_to_model)
+
+    @property
+    def header(self) -> structures.Header:
+        return encoding.create_header(self._pulled_message.attributes)
 
     def mark_as_dead_letter(self):
         self._send_to_dead_letter_queue()
