@@ -35,14 +35,14 @@ def decode(type, encoded_data: str):
             return type(**decoded_data.data)
 
 
-def create_attributes(model: structures.Model, mapping, now=None) -> dict:
+def create_attributes(model: structures.Model, now=None) -> dict:
     if now is None:
         now = get_now_with_utc_timezone()
     try:
-        type_name = mapping[model.__class__]
-    except KeyError:
+        type_name = model.Meta.type_name
+    except AttributeError:
         raise exceptions.ConfigurationError(
-            'No type defined for model: {}'.format(model))
+            'Missing Meta.type_name declaration in model: {}'.format(model))
     else:
         return {
             'type': type_name,

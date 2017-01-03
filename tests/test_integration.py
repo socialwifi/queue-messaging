@@ -36,9 +36,6 @@ def header_timestamp_mock():
 def test_send(header_timestamp_mock, pubsub_client_mock):
     messaging = queue_messaging.Messaging.create_from_dict({
         'TOPIC': 'test-topic',
-        'MESSAGE_TYPES': [
-            FancyEvent,
-        ],
     })
     model = FancyEvent(
         uuid_field=uuid.UUID('cd1d3a03-7b04-4a35-97f8-ee5f3eb04c8e'),

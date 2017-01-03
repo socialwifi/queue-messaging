@@ -18,5 +18,5 @@ class Factory:
             self.config_dict.get('SUBSCRIPTION'),
             self.config_dict.get('DEAD_LETTER_TOPIC'),
             self.config_dict.get('PUBSUB_EMULATOR_HOST'),
-            self.config_dict['MESSAGE_TYPES'],
+            self.config_dict.get('MESSAGE_TYPES', []),
         )

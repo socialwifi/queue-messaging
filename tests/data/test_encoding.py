@@ -19,6 +19,11 @@ class FancyEventSchema(marshmallow.Schema):
 class FancyEvent(structures.Model):
     class Meta:
         schema = FancyEventSchema
+        type_name = 'FancyEvent'
+
+
+class EmptySchema(marshmallow.Schema):
+    pass
 
 
 def test_encoding_payload_valid():
@@ -38,6 +43,47 @@ def test_encode_invalid_data():
         encoding.encode(
             model='invalid data',
         )
+
+
+def test_create_attributes():
+    data = FancyEvent(
+        string_field='123456789',
+        uuid_field=uuid.UUID('72d9a041-f401-42b6-8556-72b3c00e43d8'),
+    )
+    now = datetime.datetime(2016, 12, 10, 11, 15, 45, tzinfo=datetime.timezone.utc)
+    attributes = encoding.create_attributes(data, now=now)
+    assert attributes == {
+        'type': 'FancyEvent',
+        'timestamp': '2016-12-10T11:15:45.000000Z',
+    }
+
+
+@mock.patch('queue_messaging.data.encoding.get_now_with_utc_timezone')
+def test_create_attributes_uses_current_date_for_timestamp(get_now_with_utc_timezone):
+    data = FancyEvent(
+        string_field='123456789',
+        uuid_field=uuid.UUID('72d9a041-f401-42b6-8556-72b3c00e43d8'),
+    )
+    get_now_with_utc_timezone.return_value = datetime.datetime(
+        2016, 12, 10, 11, 15, 45, tzinfo=datetime.timezone.utc)
+    attributes = encoding.create_attributes(data)
+    assert attributes == {
+        'type': 'FancyEvent',
+        'timestamp': '2016-12-10T11:15:45.000000Z',
+    }
+
+
+def test_create_attributes_raises_error_when_no_type_present():
+    class BadlyDefinedEvent(structures.Model):
+        class Meta:
+            schema = EmptySchema
+
+    data = BadlyDefinedEvent()
+    with pytest.raises(exceptions.ConfigurationError) as excinfo:
+        encoding.create_attributes(data)
+
+    assert (str(excinfo.value) ==
+            "Missing Meta.type_name declaration in model: <BadlyDefinedEvent()>")
 
 
 def test_payload_decoder_valid():

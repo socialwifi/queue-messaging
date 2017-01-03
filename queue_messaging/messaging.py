@@ -57,13 +57,11 @@ class Messaging:
     def __init__(self, config: configuration.Configuration):
         self._client = pubsub.get_pubsub_client(config)
         self._dead_letter_client = pubsub.get_fallback_pubsub_client(config)
-        self._types_to_model, self._models_to_type = (
-            self._create_types_mappings(config.MESSAGE_TYPES))
+        self._types_to_model = self._create_types_mappings(config.MESSAGE_TYPES)
 
     @staticmethod
     def _create_types_mappings(types):
         types_to_model = {}
-        models_to_type = {}
         for model_class in types:
             try:
                 type_name = model_class.Meta.type_name
@@ -76,12 +74,7 @@ class Messaging:
                     'Multiple models defined for type: {}'.format(type_name)
                 )
             types_to_model[type_name] = model_class
-            if model_class in models_to_type:
-                raise exceptions.ConfigurationError(
-                    'Multiple types defined for model: {}'.format(model_class)
-                )
-            models_to_type[model_class] = type_name
-        return types_to_model, models_to_type
+        return types_to_model
 
     @classmethod
     def create_from_dict(cls, dict):
@@ -102,7 +95,7 @@ class Messaging:
         )
 
     def _get_attributes(self, model: structures.Model):
-        return encoding.create_attributes(model, self._models_to_type)
+        return encoding.create_attributes(model)
 
     def _get_message(self, model):
         return encoding.encode(model)
