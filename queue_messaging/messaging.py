@@ -1,5 +1,7 @@
 import logging
 
+from cached_property import cached_property
+
 from queue_messaging import configuration
 from queue_messaging import exceptions
 from queue_messaging.data import encoding
@@ -22,7 +24,7 @@ class Envelope:
         acknowledge_id = self._pulled_message.ack_id
         self._client.acknowledge(acknowledge_id)
 
-    @property
+    @cached_property
     def model(self):
         if self._pulled_message is None:
             raise exceptions.NoMessagesReceivedError
@@ -31,7 +33,7 @@ class Envelope:
             encoded_data=self._pulled_message.data,
             message_config=self._types_to_model)
 
-    @property
+    @cached_property
     def header(self) -> structures.Header:
         return encoding.create_header(self._pulled_message.attributes)
 
