@@ -28,3 +28,7 @@ class DecodingError(BaseExceptionWithPayload):
 
 class ConfigurationError(Exception):
     pass
+
+
+class NoMessagesReceivedError(Exception):
+    pass

@@ -24,6 +24,8 @@ class Envelope:
 
     @property
     def model(self):
+        if self._pulled_message is None:
+            raise exceptions.NoMessagesReceivedError
         return encoding.decode_payload(
             header=encoding.create_header(self._pulled_message.attributes),
             encoded_data=self._pulled_message.data,
@@ -88,8 +90,6 @@ class Messaging:
 
     def receive(self) -> Envelope:
         pulled_message = self._pull_message()
-        if pulled_message is None:
-            return
         return Envelope(
             pulled_message=pulled_message,
             client=self._client,
