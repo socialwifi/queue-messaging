@@ -10,7 +10,7 @@ class Model:
         raise NotImplementedError
 
     def __init__(self, **kwargs):
-        self._validate_with_schema_fields(kwargs, self.Meta.schema())
+        self._validate_with_schema_fields(kwargs, self._schema_fields)
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -21,15 +21,22 @@ class Model:
         )
 
     def __eq__(self, other):
-        return self.__dict__ == other.__dict__
+        return all(
+            getattr(self, field_name) == getattr(other, field_name)
+            for field_name in self._schema_fields.keys()
+        )
+
+    @property
+    def _schema_fields(self):
+        return self.Meta.schema().fields
 
     @staticmethod
-    def _validate_with_schema_fields(model_fields, schema):
+    def _validate_with_schema_fields(model_fields, schema_fields):
         model_fields_names = set(model_fields.keys())
-        schema_fields_names = set(schema.fields.keys())
+        schema_fields_names = set(schema_fields.keys())
         schema_required_fields_names = {
             field_name
-            for field_name, field in schema.fields.items()
+            for field_name, field in schema_fields.items()
             if field.required
         }
         unexpected_fields = model_fields_names - schema_fields_names
