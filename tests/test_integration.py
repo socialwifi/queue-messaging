@@ -7,7 +7,7 @@ import pytest
 from marshmallow import fields
 
 import queue_messaging
-from tests import utils
+from queue_messaging import test_utils
 
 
 class FancyEventSchema(marshmallow.Schema):
@@ -50,7 +50,7 @@ def test_send(header_timestamp_mock, pubsub_client_mock):
     publish_mock = topic_mock.return_value.publish
     topic_mock.assert_called_with('test-topic')
     publish_mock.assert_called_with(
-        utils.EncodedJson({
+        test_utils.EncodedJson({
             "uuid_field": "cd1d3a03-7b04-4a35-97f8-ee5f3eb04c8e",
             "string_field": "Just testing!"
         }),
