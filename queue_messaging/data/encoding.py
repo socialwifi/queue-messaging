@@ -1,15 +1,24 @@
 import datetime
 import json
 
+import marshmallow
+
 from queue_messaging import exceptions
 from queue_messaging.data import structures
 
 
 def encode(model: structures.Model):
     try:
-        return model.Meta.schema().dumps(model).data
+        serialization_result = model.Meta.schema().dumps(model)
     except AttributeError as e:
         raise exceptions.EncodingError(e)
+    except marshmallow.ValidationError as e:
+        raise exceptions.EncodingError(e.messages)
+    else:
+        if serialization_result.errors:
+            raise exceptions.EncodingError(serialization_result.errors)
+        else:
+            return serialization_result.data
 
 
 def decode_payload(header: structures.Header, encoded_data: str, message_config: dict):

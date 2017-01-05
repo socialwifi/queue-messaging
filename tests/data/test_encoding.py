@@ -38,6 +38,41 @@ def test_encoding_payload_valid():
             == json.loads('{"string_field": "123456789", "uuid_field": "72d9a041-f401-42b6-8556-72b3c00e43d8"}'))
 
 
+def test_if_encode_raises_exception_with_invalid_data_and_strict_schema():
+    class StrictSchema(marshmallow.Schema):
+        uuid_field = fields.UUID(required=True)
+
+        class Meta:
+            strict = True
+
+    class Event(structures.Model):
+        class Meta:
+            schema = StrictSchema
+            type_name = 'Event'
+
+    data = Event(uuid_field='not an uuid')
+    with pytest.raises(exceptions.EncodingError) as excinfo:
+        encoding.encode(data)
+    assert str(excinfo.value) == (
+        "({'uuid_field': ['Not a valid UUID.']}, '')")
+
+
+def test_if_encode_raises_exception_with_invalid_data_and_not_strict_schema():
+    class NotStrictSchema(marshmallow.Schema):
+        uuid_field = fields.UUID(required=True)
+
+    class Event(structures.Model):
+        class Meta:
+            schema = NotStrictSchema
+            type_name = 'Event'
+
+    data = Event(uuid_field='not an uuid')
+    with pytest.raises(exceptions.EncodingError) as excinfo:
+        encoding.encode(data)
+    assert str(excinfo.value) == (
+        "({'uuid_field': ['Not a valid UUID.']}, '')")
+
+
 def test_encode_invalid_data():
     with pytest.raises(exceptions.EncodingError):
         encoding.encode(
