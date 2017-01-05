@@ -1,4 +1,4 @@
-from .json import EncodedJson
+from .json import EncodedJson, StringComparableJson
 
 
-__all__ = [EncodedJson, ]
+__all__ = [EncodedJson, StringComparableJson]
