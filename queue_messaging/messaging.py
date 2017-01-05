@@ -14,11 +14,11 @@ logger = logging.getLogger(__name__)
 
 class Envelope:
     def __init__(self, pulled_message, client, dead_letter_client,
-                 types_to_model):
+                 type_to_model):
         self._pulled_message = pulled_message
         self._client = client
         self._dead_letter_client = dead_letter_client
-        self._types_to_model = types_to_model
+        self._type_to_model = type_to_model
 
     def acknowledge(self):
         acknowledge_id = self._pulled_message.ack_id
@@ -31,7 +31,7 @@ class Envelope:
         return encoding.decode_payload(
             header=self.header,
             encoded_data=self._pulled_message.data,
-            message_config=self._types_to_model)
+            message_config=self._type_to_model)
 
     @cached_property
     def header(self) -> structures.Header:
@@ -56,14 +56,22 @@ class Envelope:
 
 
 class Messaging:
-    def __init__(self, config: configuration.Configuration):
-        self._client = pubsub.get_pubsub_client(config)
-        self._dead_letter_client = pubsub.get_fallback_pubsub_client(config)
-        self._types_to_model = self._create_types_mappings(config.MESSAGE_TYPES)
+    def __init__(self, client, dead_letter_client, type_to_model):
+        self._client = client
+        self._dead_letter_client = dead_letter_client
+        self._type_to_model = type_to_model
+
+    @classmethod
+    def create_from_dict(cls, dict):
+        config = configuration.Factory(dict).create()
+        client = pubsub.get_pubsub_client(config)
+        dead_letter_client = pubsub.get_fallback_pubsub_client(config)
+        type_to_model = cls._create_type_mapping(config.MESSAGE_TYPES)
+        return cls(client, dead_letter_client, type_to_model)
 
     @staticmethod
-    def _create_types_mappings(types):
-        types_to_model = {}
+    def _create_type_mapping(types):
+        type_to_model = {}
         for model_class in types:
             try:
                 type_name = model_class.Meta.type_name
@@ -71,16 +79,12 @@ class Messaging:
                 raise exceptions.ConfigurationError(
                     'Expected class with Meta.type_name: {}'.format(model_class)
                 )
-            if type_name in types_to_model:
+            if type_name in type_to_model:
                 raise exceptions.ConfigurationError(
                     'Multiple models defined for type: {}'.format(type_name)
                 )
-            types_to_model[type_name] = model_class
-        return types_to_model
-
-    @classmethod
-    def create_from_dict(cls, dict):
-        return cls(config=configuration.Factory(dict).create())
+            type_to_model[type_name] = model_class
+        return type_to_model
 
     def send(self, model: structures.Model):
         attributes = self._get_attributes(model)
@@ -93,7 +97,7 @@ class Messaging:
             pulled_message=pulled_message,
             client=self._client,
             dead_letter_client=self._dead_letter_client,
-            types_to_model=self._types_to_model
+            type_to_model=self._type_to_model
         )
 
     def _get_attributes(self, model: structures.Model):
