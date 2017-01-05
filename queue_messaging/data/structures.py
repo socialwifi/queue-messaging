@@ -47,3 +47,7 @@ class Model:
         if len(missing_required_fields) > 0:
             raise TypeError("Missing required fields '{}'".format(
                 missing_required_fields))
+
+
+PulledMessage = collections.namedtuple(
+    'PulledMessage', ['ack_id', 'data', 'message_id', 'attributes'])

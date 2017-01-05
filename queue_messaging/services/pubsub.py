@@ -1,5 +1,3 @@
-import collections
-
 import httplib2
 from cached_property import cached_property
 from google.cloud import exceptions as google_cloud_exceptions
@@ -8,6 +6,7 @@ from google.gax import errors
 
 from queue_messaging import exceptions
 from queue_messaging import utils
+from queue_messaging.data import structures
 
 
 def get_pubsub_client(queue_config):
@@ -24,10 +23,6 @@ def get_fallback_pubsub_client(queue_config):
         subscription_name=queue_config.SUBSCRIPTION,
         pubsub_emulator_host=queue_config.PUBSUB_EMULATOR_HOST,
     )
-
-
-PulledMessage = collections.namedtuple(
-    'PulledMessage', ['ack_id', 'data', 'message_id', 'attributes'])
 
 
 class PubSub:
@@ -62,12 +57,12 @@ class PubSub:
         except (errors.GaxError, google_cloud_exceptions.NotFound) as e:
             raise exceptions.PubSubError('Error while sending a message.', error=e)
 
-    def receive(self) -> PulledMessage:
+    def receive(self) -> structures.PulledMessage:
         try:
             result = self.subscription.pull(max_messages=1, return_immediately=True)
             if result:
                 ack_id, message = result.pop()
-                return PulledMessage(
+                return structures.PulledMessage(
                     ack_id=ack_id, data=message.data.decode('utf-8'),
                     message_id=message.message_id, attributes=message.attributes)
         except (errors.GaxError, google_cloud_exceptions.NotFound) as e:
