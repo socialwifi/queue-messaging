@@ -184,6 +184,82 @@ def test_payload_decoder_empty_data():
         )
 
 
+class TestDecode:
+    @pytest.fixture
+    def schema_class(self):
+        class Schema(marshmallow.Schema):
+            uuid_field = fields.UUID(required=True)
+            string_field = fields.String(required=False)
+        return Schema
+
+    @pytest.fixture
+    def event_class(self, schema_class):
+        class Event(structures.Model):
+            class Meta:
+                schema = schema_class
+                type_name = 'Event'
+        return Event
+
+    def test_if_works(self, event_class):
+        data = ('{"uuid_field": "72d9a041-f401-42b6-8556-72b3c00e43d8", '
+                '"string_field": "123456789"}')
+        result = encoding.decode(type=event_class, encoded_data=data)
+        assert result == event_class(
+            uuid_field=uuid.UUID('72d9a041-f401-42b6-8556-72b3c00e43d8'),
+            string_field='123456789'
+        )
+
+    def test_if_works_when_optional_field_is_missing(self, event_class):
+        data = '{"uuid_field": "72d9a041-f401-42b6-8556-72b3c00e43d8"}'
+        result = encoding.decode(type=event_class, encoded_data=data)
+        assert result == event_class(
+            uuid_field=uuid.UUID('72d9a041-f401-42b6-8556-72b3c00e43d8')
+        )
+
+    def test_if_works_when_additional_field_is_present(self, event_class):
+        data = ('{"uuid_field": "72d9a041-f401-42b6-8556-72b3c00e43d8", '
+                '"string_field": "123456789", '
+                '"new_field": "does it work?"}')
+        result = encoding.decode(type=event_class, encoded_data=data)
+        assert result == event_class(
+            uuid_field=uuid.UUID('72d9a041-f401-42b6-8556-72b3c00e43d8'),
+            string_field='123456789'
+        )
+
+    def test_if_raises_exception_with_invalid_data_and_strict_schema(self):
+        class StrictSchema(marshmallow.Schema):
+            uuid_field = fields.UUID(required=True)
+
+            class Meta:
+                strict = True
+
+        class Event(structures.Model):
+            class Meta:
+                schema = StrictSchema
+                type_name = 'Event'
+
+        data = '{"uuid_field": "not an uuid"}'
+        with pytest.raises(exceptions.DecodingError) as excinfo:
+            encoding.decode(type=Event, encoded_data=data)
+        assert str(excinfo.value) == (
+            "({'uuid_field': ['Not a valid UUID.']}, '')")
+
+    def test_if_raises_exception_with_invalid_data_and_not_strict_schema(self):
+        class NotStrictSchema(marshmallow.Schema):
+            uuid_field = fields.UUID(required=True)
+
+        class Event(structures.Model):
+            class Meta:
+                schema = NotStrictSchema
+                type_name = 'Event'
+
+        data = '{"uuid_field": "not an uuid"}'
+        with pytest.raises(exceptions.DecodingError) as excinfo:
+            encoding.decode(type=Event, encoded_data=data)
+        assert str(excinfo.value) == (
+            "({'uuid_field': ['Not a valid UUID.']}, '')")
+
+
 class TestDatetimeRfc3339Encoding:
     def test_integration(self):
         input = datetime.datetime(2016, 12, 10, 11, 15, 45, 123456,

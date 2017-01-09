@@ -37,6 +37,8 @@ def decode(type, encoded_data: str):
         decoded_data = type.Meta.schema().loads(encoded_data)
     except (json.decoder.JSONDecodeError, TypeError, AttributeError):
         raise exceptions.DecodingError('Error while decoding.', encoded_data=encoded_data)
+    except marshmallow.ValidationError as e:
+        raise exceptions.DecodingError(e.messages)
     else:
         if decoded_data.errors:
             raise exceptions.DecodingError(decoded_data.errors)

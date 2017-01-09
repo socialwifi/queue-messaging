@@ -22,7 +22,7 @@ class Model:
 
     def __eq__(self, other):
         return all(
-            getattr(self, field_name) == getattr(other, field_name)
+            getattr(self, field_name, None) == getattr(other, field_name, None)
             for field_name in self._schema_fields.keys()
         )
 
