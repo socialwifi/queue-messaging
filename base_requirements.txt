@@ -1,4 +1,4 @@
-pytest
-marshmallow
 cached_property
 google-cloud-pubsub
+marshmallow
+pytest
