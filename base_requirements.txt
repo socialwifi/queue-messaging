@@ -1,4 +1,5 @@
 cached_property
 google-cloud-pubsub
 marshmallow
+netaddr
 pytest
