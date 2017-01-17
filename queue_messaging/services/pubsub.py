@@ -1,4 +1,5 @@
 import httplib2
+import tenacity
 from cached_property import cached_property
 from google.cloud import exceptions as google_cloud_exceptions
 from google.cloud import pubsub
@@ -23,6 +24,15 @@ def get_fallback_pubsub_client(queue_config):
         subscription_name=queue_config.SUBSCRIPTION,
         pubsub_emulator_host=queue_config.PUBSUB_EMULATOR_HOST,
     )
+
+
+retry = tenacity.retry(
+    retry=tenacity.retry_if_exception_type(
+        (errors.GaxError, ConnectionError)
+    ),
+    stop=tenacity.stop_after_attempt(max_attempt_number=3),
+    reraise=True,
+)
 
 
 class PubSub:
@@ -50,13 +60,15 @@ class PubSub:
         else:
             return pubsub.Client()
 
+    @retry
     def send(self, message: str, **attributes):
         bytes_payload = message.encode('utf-8')
         try:
             return self.topic.publish(bytes_payload, **attributes)
-        except (errors.GaxError, google_cloud_exceptions.NotFound) as e:
+        except google_cloud_exceptions.NotFound as e:
             raise exceptions.PubSubError('Error while sending a message.', error=e)
 
+    @retry
     def receive(self) -> structures.PulledMessage:
         try:
             result = self.subscription.pull(max_messages=1, return_immediately=True)
@@ -65,8 +77,9 @@ class PubSub:
                 return structures.PulledMessage(
                     ack_id=ack_id, data=message.data.decode('utf-8'),
                     message_id=message.message_id, attributes=message.attributes)
-        except (errors.GaxError, google_cloud_exceptions.NotFound) as e:
+        except google_cloud_exceptions.NotFound as e:
             raise exceptions.PubSubError('Error while pulling a message.', errors=e)
 
+    @retry
     def acknowledge(self, msg_id):
         return self.subscription.acknowledge([msg_id])
