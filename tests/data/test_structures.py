@@ -29,7 +29,7 @@ def test_if_creating_model_with_missing_optional_field_is_ok():
         uuid_field=1,
     )
     assert model.uuid_field == 1
-    assert not hasattr(model, 'string_field')
+    assert model.string_field is None
 
 
 def test_if_creating_model_with_invalid_fields_raises_exception():
