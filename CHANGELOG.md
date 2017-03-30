@@ -5,6 +5,7 @@ Changelog for kubepy
 ------------------
 
 - Set not provided and not required fields to None.
+- Removed pytest from dependencies.
 
 
 0.1.0 (2017-01-25)

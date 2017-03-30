@@ -7,3 +7,13 @@ Python queue messaging library.
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/queue-messaging.svg)](https://pypi.python.org/pypi/queue-messaging/)
 [![Wheel Status](https://img.shields.io/pypi/wheel/queue-messaging.svg)](https://pypi.python.org/pypi/queue-messaging/)
 [![License](https://img.shields.io/pypi/l/queue-messaging.svg)](https://github.com/socialwifi/queue-messaging/blob/master/LICENSE)
+
+## Running tests
+
+```
+virtualenv -p python3.5 ~/queue-messaging-virtualenv
+. ~/queue-messaging-virtualenv/bin/activate
+pip install -r base_requirements.txt
+pip install -U pytest==3.0.5
+pytest
+```
