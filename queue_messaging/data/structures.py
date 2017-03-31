@@ -11,8 +11,8 @@ class Model:
 
     def __init__(self, **kwargs):
         self._validate_with_schema_fields(kwargs, self._schema_fields)
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+        for field_name in self._schema_fields.keys():
+            setattr(self, field_name, kwargs.get(field_name))
 
     def __repr__(self):
         return '<{0}({1})>'.format(
