@@ -56,7 +56,7 @@ class PubSub:
     def client(self):
         if self.pubsub_emulator_host:
             with utils.EnvironmentContext('PUBSUB_EMULATOR_HOST', self.pubsub_emulator_host):
-                return pubsub.Client(http=httplib2.Http())
+                return pubsub.Client(_http=httplib2.Http())
         else:
             return pubsub.Client()
 
