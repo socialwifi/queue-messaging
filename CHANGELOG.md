@@ -6,6 +6,7 @@ Changelog for kubepy
 
 - Set not provided and not required fields to None.
 - Removed pytest from dependencies.
+- Use HTTP instead of gRPC by default, allow to pick gRPC instead in configuration.
 
 
 0.1.0 (2017-01-25)

@@ -4,7 +4,7 @@ from collections import namedtuple
 Configuration = namedtuple(
     'Configuration',
     ['TOPIC', 'SUBSCRIPTION', 'DEAD_LETTER_TOPIC', 'PUBSUB_EMULATOR_HOST',
-     'MESSAGE_TYPES'],
+     'MESSAGE_TYPES', 'USE_GRPC'],
 )
 
 
@@ -19,4 +19,5 @@ class Factory:
             self.config_dict.get('DEAD_LETTER_TOPIC'),
             self.config_dict.get('PUBSUB_EMULATOR_HOST'),
             self.config_dict.get('MESSAGE_TYPES', []),
+            self.config_dict.get('USE_GRPC', False),
         )

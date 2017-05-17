@@ -15,6 +15,7 @@ def get_pubsub_client(queue_config):
         topic_name=queue_config.TOPIC,
         subscription_name=queue_config.SUBSCRIPTION,
         pubsub_emulator_host=queue_config.PUBSUB_EMULATOR_HOST,
+        use_grpc=queue_config.USE_GRPC,
     )
 
 
@@ -23,6 +24,7 @@ def get_fallback_pubsub_client(queue_config):
         topic_name=queue_config.DEAD_LETTER_TOPIC,
         subscription_name=queue_config.SUBSCRIPTION,
         pubsub_emulator_host=queue_config.PUBSUB_EMULATOR_HOST,
+        use_grpc=queue_config.USE_GRPC,
     )
 
 
@@ -39,10 +41,12 @@ class PubSub:
     def __init__(self,
                  topic_name,
                  subscription_name=None,
-                 pubsub_emulator_host=None):
+                 pubsub_emulator_host=None,
+                 use_grpc=False):
         self.topic_name = topic_name
         self.subscription_name = subscription_name
         self.pubsub_emulator_host = pubsub_emulator_host
+        self.use_grpc = use_grpc
 
     @cached_property
     def topic(self):
@@ -56,9 +60,9 @@ class PubSub:
     def client(self):
         if self.pubsub_emulator_host:
             with utils.EnvironmentContext('PUBSUB_EMULATOR_HOST', self.pubsub_emulator_host):
-                return pubsub.Client(http=httplib2.Http())
+                return pubsub.Client(_http=httplib2.Http(), _use_grpc=self.use_grpc)
         else:
-            return pubsub.Client()
+            return pubsub.Client(_use_grpc=self.use_grpc)
 
     @retry
     def send(self, message: str, **attributes):
