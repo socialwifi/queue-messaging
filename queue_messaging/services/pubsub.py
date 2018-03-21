@@ -1,6 +1,6 @@
-import httplib2
+import logging
+
 import tenacity
-from cached_property import cached_property
 from google.cloud import exceptions as google_cloud_exceptions
 from google.cloud import pubsub
 from google.gax import errors
@@ -9,13 +9,15 @@ from queue_messaging import exceptions
 from queue_messaging import utils
 from queue_messaging.data import structures
 
+logger = logging.getLogger(__name__)
+
 
 def get_pubsub_client(queue_config):
     return PubSub(
         topic_name=queue_config.TOPIC,
         subscription_name=queue_config.SUBSCRIPTION,
         pubsub_emulator_host=queue_config.PUBSUB_EMULATOR_HOST,
-        use_grpc=queue_config.USE_GRPC,
+        project_id=queue_config.PROJECT_ID,
     )
 
 
@@ -24,7 +26,7 @@ def get_fallback_pubsub_client(queue_config):
         topic_name=queue_config.DEAD_LETTER_TOPIC,
         subscription_name=queue_config.SUBSCRIPTION,
         pubsub_emulator_host=queue_config.PUBSUB_EMULATOR_HOST,
-        use_grpc=queue_config.USE_GRPC,
+        project_id=queue_config.PROJECT_ID,
     )
 
 
@@ -37,53 +39,77 @@ retry = tenacity.retry(
 )
 
 
+class Client:
+    @property
+    def publisher(self):
+        return pubsub.PublisherClient()
+
+    @property
+    def subscriber(self):
+        return pubsub.SubscriberClient()
+
+
 class PubSub:
     def __init__(self,
-                 topic_name,
+                 topic_name, project_id,
                  subscription_name=None,
-                 pubsub_emulator_host=None,
-                 use_grpc=False):
+                 pubsub_emulator_host=None):
         self.topic_name = topic_name
         self.subscription_name = subscription_name
         self.pubsub_emulator_host = pubsub_emulator_host
-        self.use_grpc = use_grpc
+        self.project_id = project_id
+        self.client = Client()
 
-    @cached_property
-    def topic(self):
-        return self.client.topic(self.topic_name)
-
-    @cached_property
-    def subscription(self):
-        return self.topic.subscription(self.subscription_name)
-
-    @cached_property
-    def client(self):
+    @property
+    def publisher(self):
         if self.pubsub_emulator_host:
             with utils.EnvironmentContext('PUBSUB_EMULATOR_HOST', self.pubsub_emulator_host):
-                return pubsub.Client(_http=httplib2.Http(), _use_grpc=self.use_grpc)
+                return self.client.publisher
         else:
-            return pubsub.Client(_use_grpc=self.use_grpc)
+            return self.client.publisher
+
+    @property
+    def subscriber(self):
+        if self.pubsub_emulator_host:
+            with utils.EnvironmentContext('PUBSUB_EMULATOR_HOST', self.pubsub_emulator_host):
+                return self._subscriber
+        else:
+            return self._subscriber
+
+    @property
+    def _subscriber(self):
+        subscription = self._get_subscription_path()
+        return self.client.subscriber.subscribe(subscription)
+
+    def _get_subscription_path(self):
+        return self.client.subscriber.subscription_path(self.project_id, self.subscription_name)
 
     @retry
     def send(self, message: str, **attributes):
+        logger.debug('sending message')
+        topic = self._get_topic_path()
         bytes_payload = message.encode('utf-8')
-        try:
-            return self.topic.publish(bytes_payload, **attributes)
-        except google_cloud_exceptions.NotFound as e:
-            raise exceptions.PubSubError('Error while sending a message.', error=e)
+        return self.publisher.publish(topic, bytes_payload, **attributes)
+
+    def _get_topic_path(self):
+        return self.client.publisher.topic_path(self.project_id, self.topic_name)
 
     @retry
-    def receive(self) -> structures.PulledMessage:
+    def receive(self, callback):
+        logger.debug('pulling receive message')
         try:
-            result = self.subscription.pull(max_messages=1, return_immediately=True)
-            if result:
-                ack_id, message = result.pop()
-                return structures.PulledMessage(
-                    ack_id=ack_id, data=message.data.decode('utf-8'),
-                    message_id=message.message_id, attributes=message.attributes)
+            future = self.subscriber.open(lambda message: self.process_message(message, callback))
         except google_cloud_exceptions.NotFound as e:
             raise exceptions.PubSubError('Error while pulling a message.', errors=e)
+        else:
+            if future:
+                future.result()
 
-    @retry
-    def acknowledge(self, msg_id):
-        return self.subscription.acknowledge([msg_id])
+    @staticmethod
+    def process_message(message, callback):
+        logger.debug('Processing message', extra={
+            'data': message.data.decode('utf-8'), 'message_id': message.message_id
+        })
+        callback(structures.PulledMessage(
+            ack=message.ack, data=message.data.decode('utf-8'),
+            message_id=message.message_id, attributes=message.attributes))
