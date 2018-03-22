@@ -3,7 +3,6 @@ import logging
 import tenacity
 from google.cloud import exceptions as google_cloud_exceptions
 from google.cloud import pubsub
-from google.gax import errors
 
 from queue_messaging import exceptions
 from queue_messaging import utils
@@ -32,7 +31,7 @@ def get_fallback_pubsub_client(queue_config):
 
 retry = tenacity.retry(
     retry=tenacity.retry_if_exception_type(
-        (errors.GaxError, ConnectionError)
+        (ConnectionError, google_cloud_exceptions.GoogleCloudError)
     ),
     stop=tenacity.stop_after_attempt(max_attempt_number=3),
     reraise=True,

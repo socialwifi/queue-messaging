@@ -1,7 +1,7 @@
 from unittest import mock
 
+from google.cloud import exceptions as google_cloud_exceptions
 import pytest
-from google.gax import errors as gax_errors
 
 from queue_messaging.services import pubsub
 
@@ -125,9 +125,9 @@ class TestRetry:
         result = decorated()
         assert result == 1
 
-    def test_retrying_on_gax_error(self, mocked_function):
+    def test_retrying_on_google_cloud_error(self, mocked_function):
         mocked_function.side_effect = [
-            gax_errors.GaxError(msg="RPC failed"), 1
+            google_cloud_exceptions.GoogleCloudError('e'), 1
         ]
         decorated = pubsub.retry(mocked_function)
         result = decorated()
