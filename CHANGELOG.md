@@ -1,6 +1,12 @@
 Changelog for queue-messaging
 =================
 
+0.3.1 (unreleased)
+------------------
+
+- Nothing changed yet.
+
+
 0.3.0 (2018-06-29)
 ------------------
 - Backward incompatible update for latest google-cloud-pubsub compatiblity.
