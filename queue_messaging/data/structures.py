@@ -50,4 +50,4 @@ class Model:
 
 
 PulledMessage = collections.namedtuple(
-    'PulledMessage', ['ack_id', 'data', 'message_id', 'attributes'])
+    'PulledMessage', ['ack', 'data', 'message_id', 'attributes'])

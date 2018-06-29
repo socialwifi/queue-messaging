@@ -21,8 +21,8 @@ class Envelope:
         self._type_to_model = type_to_model
 
     def acknowledge(self):
-        acknowledge_id = self._pulled_message.ack_id
-        self._client.acknowledge(acknowledge_id)
+        logger.debug('Message ACK')
+        self._pulled_message.ack()
 
     @cached_property
     def model(self):
@@ -91,8 +91,10 @@ class Messaging:
         message = self._get_message(model)
         self._send_message(message, attributes)
 
-    def receive(self) -> Envelope:
-        pulled_message = self._pull_message()
+    def receive(self, callback):
+        self._pull_message(lambda message: callback(self._wrap_in_envelope(message)))
+
+    def _wrap_in_envelope(self, pulled_message):
         return Envelope(
             pulled_message=pulled_message,
             client=self._client,
@@ -117,9 +119,9 @@ class Messaging:
                 error=e,
             )
 
-    def _pull_message(self):
+    def _pull_message(self, callback):
         try:
-            return self._client.receive()
+            return self._client.receive(callback)
         except exceptions.QueueClientError as e:
             raise exceptions.QueueMessagingError(
                 'Error while receiving a message',
