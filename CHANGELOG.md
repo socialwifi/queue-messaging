@@ -1,10 +1,10 @@
 Changelog for queue-messaging
 =================
 
-0.3.1 (unreleased)
+0.3.1 (2018-07-09)
 ------------------
 
-- Nothing changed yet.
+- Freeze versions of required packages.
 
 
 0.3.0 (2018-06-29)
