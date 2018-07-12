@@ -10,7 +10,7 @@ setup(
     name='queue-messaging',
     version='0.3.2.dev0',
     description='Python queue messaging library.',
-    author='Jakub Trochim',
+    author='Social WiFi',
     author_email='it@socialwifi.com',
     url='https://github.com/socialwifi/queue-messaging',
     packages=find_packages(exclude=['tests']),
