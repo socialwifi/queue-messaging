@@ -1,7 +1,6 @@
-cached_property==1.3.0
-google-cloud-core==0.28.1
-googleapis-common-protos==1.5.3
+cached_property
+google-cloud-core
 google-cloud-pubsub>=0.32.1
-marshmallow==2.15.2
-netaddr==0.7.19
+marshmallow
+netaddr
 tenacity
