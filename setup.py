@@ -8,7 +8,7 @@ from setuptools import find_packages
 
 setup(
     name='queue-messaging',
-    version='0.3.3',
+    version='0.3.4.dev0',
     description='Python queue messaging library.',
     author='Social WiFi',
     author_email='it@socialwifi.com',
