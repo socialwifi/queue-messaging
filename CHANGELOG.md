@@ -4,7 +4,7 @@ Changelog for queue-messaging
 0.3.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Revert freezing requirements, the original problem seems to be gone.
 
 
 0.3.1 (2018-07-09)
