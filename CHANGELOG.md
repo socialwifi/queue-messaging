@@ -1,7 +1,7 @@
 Changelog for queue-messaging
 =================
 
-0.3.3 (unreleased)
+0.3.3 (2018-07-12)
 ------------------
 
 - Lock google-cloud-pubsub below version 0.35 ([#9](https://github.com/socialwifi/queue-messaging/issues/9))
