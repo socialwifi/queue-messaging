@@ -67,18 +67,16 @@ class PubSub:
         else:
             return self.client.publisher
 
-    @property
-    def subscriber(self):
+    def subscriber(self, callback):
         if self.pubsub_emulator_host:
             with utils.EnvironmentContext('PUBSUB_EMULATOR_HOST', self.pubsub_emulator_host):
-                return self._subscriber
+                return self._subscriber(callback)
         else:
-            return self._subscriber
+            return self._subscriber(callback)
 
-    @property
-    def _subscriber(self):
+    def _subscriber(self, callback):
         subscription = self._get_subscription_path()
-        return self.client.subscriber.subscribe(subscription)
+        return self.client.subscriber.subscribe(subscription, callback)
 
     def _get_subscription_path(self):
         return self.client.subscriber.subscription_path(self.project_id, self.subscription_name)
@@ -97,7 +95,7 @@ class PubSub:
     def receive(self, callback):
         logger.debug('pulling receive message')
         try:
-            future = self.subscriber.open(lambda message: self.process_message(message, callback))
+            future = self.subscriber(lambda message: self.process_message(message, callback))
         except google_cloud_exceptions.NotFound as e:
             raise exceptions.PubSubError('Error while pulling a message.', errors=e)
         else:

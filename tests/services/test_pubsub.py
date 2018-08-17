@@ -68,7 +68,7 @@ class TestPubSub:
 
 @pytest.fixture
 def pull_mock(subscription_mock):
-    return subscription_mock.open
+    return subscription_mock
 
 
 @pytest.fixture

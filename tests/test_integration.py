@@ -81,7 +81,7 @@ def test_receive(pubsub_client_mock):
         ],
         'PROJECT_ID': 'p-id',
     })
-    subscription_mock = pubsub_client_mock.return_value.subscribe.return_value
+    subscription_mock = pubsub_client_mock.return_value.subscribe
 
     messaging.receive(callback=mock.MagicMock())
-    assert subscription_mock.open.called
+    assert subscription_mock.called
