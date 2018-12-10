@@ -1,6 +1,7 @@
 import logging
 
 import tenacity
+from cached_property import cached_property
 from google.cloud import exceptions as google_cloud_exceptions
 from google.cloud import pubsub
 
@@ -39,11 +40,11 @@ retry = tenacity.retry(
 
 
 class Client:
-    @property
+    @cached_property
     def publisher(self):
         return pubsub.PublisherClient()
 
-    @property
+    @cached_property
     def subscriber(self):
         return pubsub.SubscriberClient()
 
