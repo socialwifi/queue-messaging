@@ -4,7 +4,7 @@ Changelog for queue-messaging
 0.3.5 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix memory leak in pubsub client ([#11](https://github.com/socialwifi/queue-messaging/pull/11))
 
 
 0.3.4 (2018-08-17)
