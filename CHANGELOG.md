@@ -1,6 +1,12 @@
 Changelog for queue-messaging
 =================
 
+0.3.6 (unreleased)
+------------------
+
+- Nothing changed yet.
+
+
 0.3.5 (2018-12-12)
 ------------------
 
